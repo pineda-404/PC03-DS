@@ -27,4 +27,8 @@ class EventHandler:
                 title = content.replace(priority, "").strip().lstrip("- ").strip()
                 break
 
+        # Normalizar espacios múltiples dentro del título
+        if title:
+            title = " ".join(title.split())
+
         return {"title": title, "severity": severity} if title else None
