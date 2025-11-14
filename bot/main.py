@@ -27,7 +27,6 @@ def main():
         print("[INFO] Incidente detectado:")
         print(f" Título: {result['title']}")
         print(f" Severidad: {result['severity']}")
-        print("\n En Sprint 2 se creará el issue automáticamente en GitHub")
 
 
 if __name__ == "__main__":
