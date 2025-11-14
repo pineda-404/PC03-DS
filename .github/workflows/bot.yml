@@ -8,6 +8,7 @@ on:
       - "feature/**"
       - "hotfix/**"
       - "fix/**"
+
 permissions:
   contents: read
   issues: write
@@ -38,47 +39,40 @@ jobs:
           GITHUB_OWNER: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
         run: |
-          python -c "
+          python - << 'EOF'
           import sys
           from bot.event_handlers import EventHandler
           from bot.github_client import GitHubClient
+          from bot.github_projects import GitHubProjects
           from bot.config import Config
 
-          # Obtener mensaje del último commit
-          commit_message = '''${{ github.event.head_commit.message }}'''
-
-          # Detectar incidente
+          commit_message = """${{ github.event.head_commit.message }}"""
           handler = EventHandler()
           incident = handler.handle_commit(commit_message)
 
           if incident is None:
-              print(' No es un commit de incidente')
+              print('No es un commit de incidente')
               sys.exit(0)
 
-          # Crear issue en GitHub
           try:
               config = Config()
               client = GitHubClient(config.token, config.owner, config.repo)
-              
               issue_number = client.create_incident_issue(
                   title=incident['title'],
                   severity=incident['severity']
               )
-              
-              print(f'Issue #{issue_number} creado:')
-              print(f'Titulo: {incident[\"title\"]}')
-              print(f'Severidad: {incident[\"severity\"]}')
-              print(f'URL: https://github.com/${{ github.repository }}/issues/{issue_number}')
-              
+              projects = GitHubProjects(config.owner, config.repo, 2)
+              projects.move_card(issue_number, 'In Progress')
+              print(f'Issue #{issue_number} creado y movido a In Progress')
           except Exception as e:
-              print(f'Error al crear issue: {e}')
+              print(f'Error: {e}')
               sys.exit(1)
-          "
+          EOF
 
       - name: Summary
         if: always()
         run: |
-          echo "###  ChatOps Bot Execution" >> $GITHUB_STEP_SUMMARY
+          echo "### ChatOps Bot Execution" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Rama:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
