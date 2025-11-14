@@ -33,9 +33,19 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Setup gh CLI
+        run: |
+          type gh >/dev/null 2>&1 || {
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list
+            sudo apt update
+            sudo apt install gh -y
+          }
+
       - name: Detect and create incident issues
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
         run: |
@@ -47,6 +57,7 @@ jobs:
           from bot.config import Config
 
           commit_message = """${{ github.event.head_commit.message }}"""
+
           handler = EventHandler()
           incident = handler.handle_commit(commit_message)
 
@@ -57,13 +68,21 @@ jobs:
           try:
               config = Config()
               client = GitHubClient(config.token, config.owner, config.repo)
+              
               issue_number = client.create_incident_issue(
                   title=incident['title'],
                   severity=incident['severity']
               )
+              
+              print(f'Issue #{issue_number} creado')
+              print(f'Titulo: {incident["title"]}')
+              print(f'Severidad: {incident["severity"]}')
+              print(f'URL: https://github.com/${{ github.repository }}/issues/{issue_number}')
+              
               projects = GitHubProjects(config.owner, config.repo, 2)
               projects.move_card(issue_number, 'In Progress')
-              print(f'Issue #{issue_number} creado y movido a In Progress')
+              print(f'Tarjeta #{issue_number} movida a In Progress')
+              
           except Exception as e:
               print(f'Error: {e}')
               sys.exit(1)
@@ -74,6 +93,6 @@ jobs:
         run: |
           echo "### ChatOps Bot Execution" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Rama:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Autor:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
