@@ -81,8 +81,8 @@ jobs:
               print(f'URL: https://github.com/${{ github.repository }}/issues/{issue_number}')
               
               projects = GitHubProjects(config.owner, config.repo, 2)
-              projects.move_card(issue_number, 'In Progress')
-              print(f'Tarjeta #{issue_number} movida a In Progress')
+              projects.move_card(issue_number, 'New Issue')
+              print(f'Tarjeta #{issue_number} movida a columna New Issue')
               
           except Exception as e:
               print(f'Error: {e}')
