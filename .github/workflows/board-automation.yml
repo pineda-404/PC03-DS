@@ -6,6 +6,10 @@ on:
   pull_request:
     types: [opened, reopened]
     branches: [develop, main]
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
 jobs:
   move-cards:
