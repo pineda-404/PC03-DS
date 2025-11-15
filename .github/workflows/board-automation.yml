@@ -38,6 +38,17 @@ jobs:
             sudo apt install gh -y
           }
 
+      - name: Debug gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.CHATOPS_BOT_TOKEN }}
+        run: |
+          echo "Testing gh CLI authentication..."
+          gh auth status
+          echo "Listing projects..."
+          gh project list --owner pineda-404 || echo "Failed to list projects"
+          echo "Trying field-list..."
+          gh project field-list 2 --owner pineda-404 --format json || echo "Failed field-list"
+
       - name: Move card based on event
         env:
           GH_TOKEN: ${{ secrets.CHATOPS_BOT_TOKEN }}
