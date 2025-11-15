@@ -19,9 +19,7 @@ class GitHubClient:
             if not self._repo:
                 self._repo = self.client.get_repo(f"{self.owner}/{self.repo}")
 
-            body = (
-                f"🚨 Incidente detectado automáticamente\n\n**Severidad:** {severity}"
-            )
+            body = f" Incidente detectado automaticamente por el bot\n\n**Severidad:** {severity}"
             labels = [severity, "incident"]
 
             issue = self._repo.create_issue(title=title, body=body, labels=labels)
