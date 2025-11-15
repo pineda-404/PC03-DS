@@ -6,6 +6,7 @@ on:
   pull_request:
     types: [opened, reopened]
     branches: [develop, main]
+
 permissions:
   contents: read
   issues: write
@@ -33,14 +34,17 @@ jobs:
           GITHUB_OWNER: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
           PROJECT_NUMBER: 2
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          python -c "
+          python3 << 'EOF'
           import sys
           import os
           import re
           from bot.github_projects import GitHubProjects
 
-          event_name = '${{ github.event_name }}'
+          event_name = os.getenv('EVENT_NAME')
           owner = os.getenv('GITHUB_OWNER')
           repo = os.getenv('GITHUB_REPO')
           project_number = int(os.getenv('PROJECT_NUMBER', '1'))
@@ -49,12 +53,12 @@ jobs:
 
           try:
               if event_name == 'issues':
-                  issue_number = ${{ github.event.issue.number }}
+                  issue_number = int(os.getenv('ISSUE_NUMBER'))
                   projects.move_card(issue_number, 'In Progress')
                   print(f'Tarjeta #{issue_number} movida a In Progress')
               
               elif event_name == 'pull_request':
-                  pr_body = '''${{ github.event.pull_request.body }}'''
+                  pr_body = os.getenv('PR_BODY', '')
                   pattern = r'(?:Fixes|Closes|Resolves)\s*#(\d+)'
                   matches = re.findall(pattern, pr_body, re.IGNORECASE)
                   
@@ -70,3 +74,4 @@ jobs:
           except Exception as e:
               print(f'Error al mover tarjeta: {e}')
               sys.exit(1)
+          EOF
