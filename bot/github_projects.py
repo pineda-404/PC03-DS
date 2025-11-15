@@ -10,6 +10,7 @@ class GitHubProjects:
         self.owner = owner
         self.repo = repo
         self.project_number = project_number
+        self._project_id = None
         self._status_field_id = None
         self._status_options = {}
 
@@ -34,6 +35,8 @@ class GitHubProjects:
             "--format",
             "json",
         )
+
+        self._project_id = fields.get("project", {}).get("id")
 
         for field in fields["fields"]:
             if field["name"] == "Status":
@@ -103,6 +106,8 @@ class GitHubProjects:
             "item-edit",
             "--id",
             item_id,
+            "--project-id",
+            self._project_id,
             "--field-id",
             self._status_field_id,
             "--single-select-option-id",
