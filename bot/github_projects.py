@@ -10,7 +10,6 @@ class GitHubProjects:
         self.owner = owner
         self.repo = repo
         self.project_number = project_number
-        self._project_id = None
         self._status_field_id = None
         self._status_options = {}
 
@@ -22,20 +21,9 @@ class GitHubProjects:
         return json.loads(result.stdout) if result.stdout.strip() else {}
 
     def _ensure_project_metadata(self):
-        """Cachea IDs del proyecto, field Status y sus opciones."""
-        if self._project_id:
+        """Cachea field Status y sus opciones."""
+        if self._status_field_id:
             return
-
-        data = self._run_gh(
-            "project",
-            "view",
-            str(self.project_number),
-            "--owner",
-            self.owner,
-            "--format",
-            "json",
-        )
-        self._project_id = data["id"]
 
         fields = self._run_gh(
             "project",
@@ -78,9 +66,9 @@ class GitHubProjects:
                 "--url",
                 f"https://github.com/{self.owner}/{self.repo}/issues/{issue_number}",
             )
-            time.sleep(2)  # Delay para sincronización
+            time.sleep(2)
         except subprocess.CalledProcessError:
-            pass  # Ya está en el proyecto
+            pass
 
         # Buscar item con retry
         item_id = None
@@ -104,7 +92,7 @@ class GitHubProjects:
 
             if item_id:
                 break
-            time.sleep(2)  # Esperar antes de reintentar
+            time.sleep(2)
 
         if not item_id:
             raise ValueError(f"Issue #{issue_number} no encontrado en proyecto")
@@ -115,8 +103,6 @@ class GitHubProjects:
             "item-edit",
             "--id",
             item_id,
-            "--project-id",
-            self._project_id,
             "--field-id",
             self._status_field_id,
             "--single-select-option-id",
