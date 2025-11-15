@@ -26,6 +26,8 @@ class GitHubProjects:
         if self._status_field_id:
             return
 
+        self._project_id = "PVT_kwHOBwaJus4BHE5S"
+
         fields = self._run_gh(
             "project",
             "field-list",
@@ -35,8 +37,6 @@ class GitHubProjects:
             "--format",
             "json",
         )
-
-        self._project_id = fields.get("project", {}).get("id")
 
         for field in fields["fields"]:
             if field["name"] == "Status":
